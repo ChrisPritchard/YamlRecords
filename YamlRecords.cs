@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 
 public static class YamlRecords
 {
@@ -210,7 +212,7 @@ public static class YamlRecords
 
         var constructorParams = constructor.GetParameters();
 
-        var constructorArgs = new object?[constructorParams.Length];
+        var constructorArgs = new object[constructorParams.Length];
         for (var i = 0; i < constructorParams.Length; i++)
         {
             var paramName = constructorParams[i].Name;
@@ -220,7 +222,7 @@ public static class YamlRecords
                 constructorArgs[i] = DeserializeUnknown(obj, constructorParams[i].ParameterType);
             else
                 constructorArgs[i] = constructorParams[i].HasDefaultValue ?
-                    constructorParams[i].DefaultValue :
+                    constructorParams[i].DefaultValue! :
                     GetDefaultValue(constructorParams[i].ParameterType);
         }
 
@@ -364,7 +366,7 @@ public static class YamlRecords
         return new_indent + line[i..];
     }
 
-    private static object? GetDefaultValue(Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
+    private static object GetDefaultValue(Type type) => type.IsValueType ? Activator.CreateInstance(type)! : null!;
 
     private static Type GetConcreteListType(Type type, Type valueType)
     {
