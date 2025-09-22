@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -80,6 +81,133 @@ namespace YamlRecords
             Assert.Equal("res://assets/reputation_icon.png", comment_test2.CardTypes["health"].IconPath);
         }
 
+        [Fact]
+        public void Serialize_Anonymous_Types()
+        {
+            // Arrange
+            var test_type = new
+            {
+                Title = "Hello World",
+                Content = "This is a test (including special characters! #)",
+                Items = new[]
+                {
+                    true,
+                    false,
+                    true
+                }
+            };
+
+            var nl = Environment.NewLine;
+            var expected =
+                "title: Hello World" + nl +
+                "content: \"This is a test (including special characters! #)\"" + nl +
+                "items:" + nl +
+                "  - true" + nl +
+                "  - false" + nl +
+                "  - true";
+
+            // Act
+            var yaml = YamlRecords.Serialize(test_type);
+
+            // Assert
+            Assert.Equal(yaml, expected);
+        }
+
+        [Fact]
+        public void Serialize_Structs()
+        {
+            // Arrange
+            var test_type = new TestStruct
+            {
+                Title = "Hello World",
+                Content = "This is a test (including special characters! #)",
+                Items =
+                [
+                    true,
+                    false,
+                    true
+                ]
+            };
+
+            var nl = Environment.NewLine;
+            var expected =
+                "title: Hello World" + nl +
+                "content: \"This is a test (including special characters! #)\"" + nl +
+                "items:" + nl +
+                "  - true" + nl +
+                "  - false" + nl +
+                "  - true";
+
+            // Act
+            var yaml = YamlRecords.Serialize(test_type);
+
+            // Assert
+            Assert.Equal(yaml, expected);
+        }
+
+        [Fact]
+        public void Serialize_Required_Class()
+        {
+            // Arrange
+            var test_type = new TestClass
+            {
+                Title = "Hello World",
+                Content = "This is a test (including special characters! #)",
+                Items =
+                [
+                    true,
+                    false,
+                    true
+                ]
+            };
+
+            var nl = Environment.NewLine;
+            var expected =
+                "title: Hello World" + nl +
+                "content: \"This is a test (including special characters! #)\"" + nl +
+                "items:" + nl +
+                "  - true" + nl +
+                "  - false" + nl +
+                "  - true";
+
+            // Act
+            var yaml = YamlRecords.Serialize(test_type);
+
+            // Assert
+            Assert.Equal(yaml, expected);
+        }
+
+        [Fact]
+        public void Serialize_Class_With_Ctor()
+        {
+            // Arrange
+            var test_type = new TestClassWithCtor("Hello World")
+            {
+                Content = "This is a test (including special characters! #)",
+                Items =
+                [
+                    true,
+                    false,
+                    true
+                ]
+            };
+
+            var nl = Environment.NewLine;
+            var expected =
+                "title: Hello World" + nl +
+                "content: \"This is a test (including special characters! #)\"" + nl +
+                "items:" + nl +
+                "  - true" + nl +
+                "  - false" + nl +
+                "  - true";
+
+            // Act
+            var yaml = YamlRecords.Serialize(test_type);
+
+            // Assert
+            Assert.Equal(yaml, expected);
+        }
+
         public static class TestModels
         {
 
@@ -160,6 +288,32 @@ namespace YamlRecords
                 },
                 ["funds", "funds", "health", "health"],
                 ["work"]);
+            }
+
+            public struct TestStruct
+            {
+                public string Title { get; set; }
+                public string Content { get; set; }
+                public bool[] Items { get; set; }
+            }
+
+            public class TestClass
+            {
+                public required string Title { get; set; }
+                public required string Content { get; set; }
+                public required bool[] Items { get; set; }
+            }
+
+            public class TestClassWithCtor
+            {
+                public string Title { get; private set; }
+                public required string Content { get; set; }
+                public required bool[] Items { get; set; }
+
+                public TestClassWithCtor(string title)
+                {
+                    Title = title;
+                }
             }
         }
     }

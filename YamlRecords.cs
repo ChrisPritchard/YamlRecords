@@ -108,7 +108,16 @@ namespace YamlRecords
 
         private static void SerializeList(StringBuilder sb, object obj, string indent = "")
         {
-            var values = ((IEnumerable<object>)obj).ToArray();
+            object[] values;
+            if (obj.GetType().IsArray)
+            {
+                var obj_array = (Array)obj;
+                values = new object[obj_array.Length];
+                for (var i = 0; i < obj_array.Length; i++)
+                    values[i] = obj_array.GetValue(i)!;
+            }
+            else
+                values = [.. (IEnumerable<object>)obj];
             for (var i = 0; i < values.Length; i++)
             {
                 var v = values[i];
