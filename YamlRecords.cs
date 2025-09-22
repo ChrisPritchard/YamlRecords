@@ -176,12 +176,24 @@ public static class YamlRecords
     {
         var data = (List<object>)value;
         type = GetConcreteListType(type, value_type);
-        var result = (IList)Activator.CreateInstance(type)!;
 
-        foreach (var item in data)
-            result.Add(DeserializeUnknown(item, value_type));
+        if (type.IsArray)
+        {
+            var result = (IList)Array.CreateInstance(type.GetElementType()!, data.Count);
+            for (var i = 0; i < result.Count; i++)
+                result[i] = DeserializeUnknown(data[i], value_type);
+            return result;
+        }
+        else
+        {
+            var result = (IList)Activator.CreateInstance(type)!;
 
-        return result;
+            foreach (var item in data)
+                result.Add(DeserializeUnknown(item, value_type));
+
+            return result;
+        }
+
     }
 
     private static Type GetConcreteListType(Type type, Type valueType)

@@ -6,6 +6,7 @@ var model = Test.CreateModel();
 var yaml = YamlRecords.Serialize(model);
 
 Console.WriteLine(yaml);
+File.WriteAllText("./out.yml", yaml);
 
 Console.WriteLine("\ntesting deserialization...\n");
 

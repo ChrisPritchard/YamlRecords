@@ -1,5 +1,5 @@
 
-public record GameConfig(Dictionary<string, CardType> CardTypes, Dictionary<string, GameFlow> GameFlows);
+public record GameConfig(Dictionary<string, CardType> CardTypes, Dictionary<string, GameFlow> GameFlows, string[] StartingCards, string[] StartingFlows);
 
 public record CardType(string Title, string IconPath);
 
@@ -18,10 +18,10 @@ public record StateVariant(
 public record SocketState(
     Dictionary<string, StateVariant> Variants,
     string DefaultVariant,
-    IEnumerable<SocketConfig> Sockets)
+    SocketConfig[] Sockets)
      : FlowState(Variants, DefaultVariant);
 
-public record SocketConfig(string Title, IEnumerable<string> Accepts, Dictionary<string, StateAction> OnAccept);
+public record SocketConfig(string Title, string[] Accepts, Dictionary<string, StateAction> OnAccept);
 
 public abstract record StateAction();
 
@@ -40,7 +40,7 @@ public record TimerState(
 public record CardState(
     Dictionary<string, StateVariant> Variants,
     string DefaultVariant,
-    IEnumerable<CardType> NewCards)
+    string[] NewCards)
      : FlowState(Variants, DefaultVariant);
 
 public class Test
@@ -75,6 +75,8 @@ public class Test
                         , "default", 60, null, new TransitionAction("choose_path")) // repeat for test
                     },
                 }) }
-        });
+        },
+        ["funds", "funds", "health", "health"],
+        ["work"]);
     }
 }
