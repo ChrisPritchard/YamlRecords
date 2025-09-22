@@ -376,7 +376,7 @@ namespace YamlRecords
 
             for (var j = 0; j < line.Length; j++)
             {
-                var current = line[i];
+                var current = line[j];
 
                 if ((current == '\'' || current == '"') && !in_quotes)
                 {
@@ -387,7 +387,7 @@ namespace YamlRecords
                     in_quotes = false;
                 else if (current == '#' && !in_quotes)
                 {
-                    comment_start = i;
+                    comment_start = j;
                     break;
                 }
             }
