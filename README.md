@@ -6,11 +6,11 @@ I built this for a Godot game I was working on, where I wanted to use minimal Re
 
 To use, just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere (setup namespaces or trim down as needed).
 
-> Note: I built this for my needs, and its possible it won't cover all edge cases - I've tried to make it fairly generic for things like lists and collections, but don't expect it to be perfect.
+> **Note**: I built this for my needs, and its possible it won't cover all edge cases - I've tried to make it fairly generic for things like lists and collections, but don't expect it to be perfect.
 
 ## Example of use
 
-> all of the below steps are performed in [Program.cs](./Program.cs) with [Model.cs](./Model.cs) as help; NOTE the only file you need for your own projects is YamlRecords.cs
+> **Note**: All of the below steps are performed in [Program.cs](./Program.cs) using [Model.cs](./Model.cs), these two files are just for testing; the only file you need for your own projects is [YamlRecords.cs](./YamlRecords.cs)
 
 Using the record types defined in [Model.cs](./Model.cs), you can define a structure like this:
 
