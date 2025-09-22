@@ -358,6 +358,8 @@ public static class YamlRecords
         var i = 0;
         while (i < line.Length && line[i] == '\t')
             i++;
+        if (i == 0)
+            return line;
         var new_indent = string.Concat(Enumerable.Repeat(indent_amount, i));
         return new_indent + line[i..];
     }
