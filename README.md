@@ -46,6 +46,8 @@ new()
 });
 ```
 
+Note that this structure includes abstract types and their derived types, as well as only record types using init constructors.
+
 You can then serialize this with:
 
 ```c#
