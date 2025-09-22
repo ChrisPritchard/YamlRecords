@@ -4,15 +4,15 @@ A small script that can deserialize and serialize to Yaml from dotnet classes; i
 
 I built this for a Godot game I was working on, where I wanted to use minimal Record type definitions and inheritance. The incumbent dotnet project for Yaml is [YamlDotNet](https://github.com/aaubry/YamlDotNet) but at the time of writing (September 2025) that project, while being vastly more sophisticated and tested than this humble script, had not adapted to Records yet (there are workarounds that include adding parameterless constructors to each record, a bit ugly). Additionally it didnt support inheritance very well when deserializing, a perennial issue with serializers. I needed both.
 
-To use, just copy YamlRecords.cs into your project somewhere (setup namespaces or trim down as needed).
+To use, just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere (setup namespaces or trim down as needed).
 
 > Note: I built this for my needs, and its possible it won't cover all edge cases - I've tried to make it fairly generic for things like lists and collections, but don't expect it to be perfect.
 
 ## Example of use
 
-> all of the below steps are performed in Program.cs with Model.cs as help; NOTE the only file you need for your own projects is YamlRecords.cs
+> all of the below steps are performed in [Program.cs](./Program.cs) with [Model.cs](./Model.cs) as help; NOTE the only file you need for your own projects is YamlRecords.cs
 
-Using the record types defined in [./Model.cs], you can define a structure like this:
+Using the record types defined in [Model.cs](./Model.cs), you can define a structure like this:
 
 ```c#
 var test = new GameConfig(new()
