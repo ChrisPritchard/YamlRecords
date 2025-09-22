@@ -1,5 +1,7 @@
 # YamlRecords
 
+![.NET](https://github.com/ChrisPritchard/YamlRecords/actions/workflows/dotnet.yml/badge.svg)
+
 A small script that can deserialize and serialize to YAML from dotnet classes; it supports C# 9 [records with primary constructors](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record), and can also figure out inheritance with some derived type heuristics.
 
 I built this for a Godot game I was working on, where I wanted to use minimal Record type definitions and inheritance. The incumbent dotnet project for YAML is [YamlDotNet](https://github.com/aaubry/YamlDotNet) but at the time of writing (September 2025) that project, while being vastly more sophisticated and tested than this humble script, had not adapted to Records with primary constructors yet (there are workarounds that include adding parameterless constructors to each record, a bit ugly). Additionally it didn't support inheritance very well when deserializing, a perennial issue with serializers. I needed both.
