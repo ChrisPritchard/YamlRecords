@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 public static class YamlRecords
 {
     private const string indent_amount = "  ";
+    private static readonly char[] special_characters = ":\"\'\n[]{}".ToCharArray();
 
     public static string Serialize(object obj)
     {
@@ -20,7 +22,9 @@ public static class YamlRecords
         return (T)DeserializeUnknown(processed, typeof(T));
     }
 
+    //
     // - Serialization Methods
+    //
 
     private static void SerializeUnknown(StringBuilder sb, object obj, string indent = "", bool first_line_indented = false)
     {
@@ -41,8 +45,6 @@ public static class YamlRecords
             SerializeMap(sb, dict, indent, first_line_indented);
         }
     }
-
-    private static readonly char[] special_characters = ":\"\'\n[]{}".ToCharArray();
 
     private static void SerializeBasic(StringBuilder sb, object obj, string indent = "", bool convert_string_case = false)
     {
@@ -196,33 +198,6 @@ public static class YamlRecords
 
     }
 
-    private static Type GetConcreteListType(Type type, Type valueType)
-    {
-        if (!type.IsInterface && !type.IsAbstract)
-            return type;
-
-        if (type.IsGenericType)
-        {
-            var genericDefinition = type.GetGenericTypeDefinition();
-
-            if (genericDefinition == typeof(IEnumerable<>) ||
-                genericDefinition == typeof(ICollection<>) ||
-                genericDefinition == typeof(IList<>))
-                return typeof(List<>).MakeGenericType(valueType);
-
-            if (genericDefinition == typeof(ISet<>))
-                return typeof(HashSet<>).MakeGenericType(valueType);
-        }
-
-        if (type == typeof(IEnumerable) || type == typeof(ICollection) || type == typeof(IList))
-            return typeof(List<object>);
-
-        if (type.IsAssignableFrom(typeof(IEnumerable)))
-            return typeof(List<object>);
-
-        throw new NotSupportedException($"Cannot create concrete type for interface/abstract type: {type}");
-    }
-
     private static object DeserializeRecord(object value, Type type)
     {
         var data = (Dictionary<object, object>)value;
@@ -258,27 +233,6 @@ public static class YamlRecords
         }
 
         return instance;
-    }
-
-    private static Type FindConcreteTypeForData(Type baseType, Dictionary<object, object> data)
-    {
-        var assembly = baseType.Assembly;
-        var concreteTypes = assembly.GetTypes()
-            .Where(t => !t.IsAbstract && !t.IsInterface && baseType.IsAssignableFrom(t))
-            .ToList();
-
-        var dataKeys = data.Keys.Select(k => k.ToString()).ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var type in concreteTypes)
-        {
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            var propertyNames = properties.Select(p => CamelCase(p.Name).ToString()).ToHashSet();
-
-            if (dataKeys.IsSubsetOf(propertyNames))
-                return type;
-        }
-
-        throw new Exception("could not find concrete type for " + baseType.Name);
     }
 
     //
@@ -356,6 +310,7 @@ public static class YamlRecords
 
         for (var i = 0; i < lines.Length; i++)
         {
+            lines[i] = CleanTabs(lines[i]);
             if (!lines[i].StartsWith(indent))
                 return (result_dict.Count > 0 ? result_dict : result_list, i);
 
@@ -396,5 +351,64 @@ public static class YamlRecords
         return (result_dict.Count > 0 ? result_dict : result_list, lines.Length);
     }
 
+    private static string CleanTabs(string line)
+    {
+        // leading tabs are not allowed in yaml, so if the yaml has them it should probably be rejected
+        // but sometimes thats annnoying, and its easy to fix
+        var i = 0;
+        while (i < line.Length && line[i] == '\t')
+            i++;
+        var new_indent = string.Concat(Enumerable.Repeat(indent_amount, i));
+        return new_indent + line[i..];
+    }
+
     private static object? GetDefaultValue(Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
+
+    private static Type GetConcreteListType(Type type, Type valueType)
+    {
+        if (!type.IsInterface && !type.IsAbstract)
+            return type;
+
+        if (type.IsGenericType)
+        {
+            var genericDefinition = type.GetGenericTypeDefinition();
+
+            if (genericDefinition == typeof(IEnumerable<>) ||
+                genericDefinition == typeof(ICollection<>) ||
+                genericDefinition == typeof(IList<>))
+                return typeof(List<>).MakeGenericType(valueType);
+
+            if (genericDefinition == typeof(ISet<>))
+                return typeof(HashSet<>).MakeGenericType(valueType);
+        }
+
+        if (type == typeof(IEnumerable) || type == typeof(ICollection) || type == typeof(IList))
+            return typeof(List<object>);
+
+        if (type.IsAssignableFrom(typeof(IEnumerable)))
+            return typeof(List<object>);
+
+        throw new NotSupportedException($"Cannot create concrete type for interface/abstract type: {type}");
+    }
+
+    private static Type FindConcreteTypeForData(Type baseType, Dictionary<object, object> data)
+    {
+        var assembly = baseType.Assembly;
+        var concreteTypes = assembly.GetTypes()
+            .Where(t => !t.IsAbstract && !t.IsInterface && baseType.IsAssignableFrom(t))
+            .ToList();
+
+        var dataKeys = data.Keys.Select(k => k.ToString()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var type in concreteTypes)
+        {
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var propertyNames = properties.Select(p => CamelCase(p.Name).ToString()).ToHashSet();
+
+            if (dataKeys.IsSubsetOf(propertyNames))
+                return type;
+        }
+
+        throw new Exception("could not find concrete type for " + baseType.Name);
+    }
 }
