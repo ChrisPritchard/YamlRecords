@@ -1,59 +1,63 @@
 
-public record GameConfig(Dictionary<string, CardType> CardTypes, Dictionary<string, GameFlow> GameFlows, string[] StartingCards, string[] StartingFlows);
+using System.Collections.Generic;
 
-public record CardType(string Title, string IconPath);
-
-public record GameFlow(string IconPath, string StartState, Dictionary<string, FlowState> States);
-
-public abstract record FlowState(
-    Dictionary<string, StateVariant> Variants,
-    string DefaultVariant);
-
-public record StateVariant(
-    string Title,
-    string Description,
-    string ActionLabel,
-    StateAction? OnAction);
-
-public record SocketState(
-    Dictionary<string, StateVariant> Variants,
-    string DefaultVariant,
-    SocketConfig[] Sockets)
-     : FlowState(Variants, DefaultVariant);
-
-public record SocketConfig(string Title, string[] Accepts, Dictionary<string, StateAction> OnAccept);
-
-public abstract record StateAction();
-
-public record TransitionAction(string NewState) : StateAction;
-
-public record VariantAction(string NewVariant) : StateAction;
-
-public record TimerState(
-    Dictionary<string, StateVariant> Variants,
-    string DefaultVariant,
-    int Seconds,
-    SocketConfig? Socket,
-    StateAction OnElapsed)
-     : FlowState(Variants, DefaultVariant);
-
-public record CardState(
-    Dictionary<string, StateVariant> Variants,
-    string DefaultVariant,
-    string[] NewCards)
-     : FlowState(Variants, DefaultVariant);
-
-public class Test
+namespace YamlRecords
 {
-    public static GameConfig CreateModel()
+    public record GameConfig(Dictionary<string, CardType> CardTypes, Dictionary<string, GameFlow> GameFlows, string[] StartingCards, string[] StartingFlows);
+
+    public record CardType(string Title, string IconPath);
+
+    public record GameFlow(string IconPath, string StartState, Dictionary<string, FlowState> States);
+
+    public abstract record FlowState(
+        Dictionary<string, StateVariant> Variants,
+        string DefaultVariant);
+
+    public record StateVariant(
+        string Title,
+        string Description,
+        string ActionLabel,
+        StateAction? OnAction);
+
+    public record SocketState(
+        Dictionary<string, StateVariant> Variants,
+        string DefaultVariant,
+        SocketConfig[] Sockets)
+         : FlowState(Variants, DefaultVariant);
+
+    public record SocketConfig(string Title, string[] Accepts, Dictionary<string, StateAction> OnAccept);
+
+    public abstract record StateAction();
+
+    public record TransitionAction(string NewState) : StateAction;
+
+    public record VariantAction(string NewVariant) : StateAction;
+
+    public record TimerState(
+        Dictionary<string, StateVariant> Variants,
+        string DefaultVariant,
+        int Seconds,
+        SocketConfig? Socket,
+        StateAction OnElapsed)
+         : FlowState(Variants, DefaultVariant);
+
+    public record CardState(
+        Dictionary<string, StateVariant> Variants,
+        string DefaultVariant,
+        string[] NewCards)
+         : FlowState(Variants, DefaultVariant);
+
+    public class Test
     {
-        return new GameConfig(new()
+        public static GameConfig CreateModel()
+        {
+            return new GameConfig(new()
             {
                 { "funds", new CardType("Funds", "res://assets/wealth_icon.png") },
                 { "health", new CardType("Health", "res://assets/reputation_icon.png") },
             },
-        new()
-        {
+            new()
+            {
                 { "work", new GameFlow("res://assets/authority_icon.png", "choose_path", new() {
                     {
                         "choose_path", new SocketState(new ()
@@ -75,8 +79,9 @@ public class Test
                         , "default", 60, null, new TransitionAction("choose_path")) // repeat for test
                     },
                 }) }
-        },
-        ["funds", "funds", "health", "health"],
-        ["work"]);
+            },
+            ["funds", "funds", "health", "health"],
+            ["work"]);
+        }
     }
 }
