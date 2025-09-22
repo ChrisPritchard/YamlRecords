@@ -1,8 +1,8 @@
 # YamlRecords
 
-A small script that can deserialize and serialize to Yaml from dotnet classes; it supports C# 9 [records with primary constructors](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record), and can also figure out inheritance with some derived type heuristics.
+A small script that can deserialize and serialize to YAML from dotnet classes; it supports C# 9 [records with primary constructors](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record), and can also figure out inheritance with some derived type heuristics.
 
-I built this for a Godot game I was working on, where I wanted to use minimal Record type definitions and inheritance. The incumbent dotnet project for Yaml is [YamlDotNet](https://github.com/aaubry/YamlDotNet) but at the time of writing (September 2025) that project, while being vastly more sophisticated and tested than this humble script, had not adapted to Records with primary constructors yet (there are workarounds that include adding parameterless constructors to each record, a bit ugly). Additionally it didn't support inheritance very well when deserializing, a perennial issue with serializers. I needed both.
+I built this for a Godot game I was working on, where I wanted to use minimal Record type definitions and inheritance. The incumbent dotnet project for YAML is [YamlDotNet](https://github.com/aaubry/YamlDotNet) but at the time of writing (September 2025) that project, while being vastly more sophisticated and tested than this humble script, had not adapted to Records with primary constructors yet (there are workarounds that include adding parameterless constructors to each record, a bit ugly). Additionally it didn't support inheritance very well when deserializing, a perennial issue with serializers. I needed both.
 
 To use, just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere (setup namespaces or trim down as needed).
 
@@ -10,9 +10,9 @@ To use, just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere
 
 ## Example of use
 
-> **Note**: All of the below steps are performed in [Program.cs](./Program.cs) using [Model.cs](./Model.cs), these two files are just for testing; the only file you need for your own projects is [YamlRecords.cs](./YamlRecords.cs)
+> **Note**: All of the below steps are performed in [YamlRecords.Tests.cs](./YamlRecords.Tests.cs); the only file you need for your own projects is [YamlRecords.cs](./YamlRecords.cs)
 
-Using the record types defined in [Model.cs](./Model.cs), you can define a structure like this:
+Using the record types defined in [YamlRecords.Tests.cs](./YamlRecords.Tests.cs), you can define a structure like this:
 
 ```c#
 var test = new GameConfig(new()

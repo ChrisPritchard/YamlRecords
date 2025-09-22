@@ -1,16 +1,17 @@
-using System;
-using System.IO;
+using System.Collections.Generic;
 using Xunit;
 
 namespace YamlRecords
 {
+    using static YamlRecordsTests.TestModels;
+
     public class YamlRecordsTests
     {
         [Fact]
         public void Serialize_Then_Deserialize_Should_Produce_Equivalent_Object()
         {
             // Arrange
-            var model = Test.CreateModel();
+            var model = CreateModel();
 
             // Act
             var yaml = YamlRecords.Serialize(model);
@@ -77,6 +78,89 @@ namespace YamlRecords
             Assert.Equal("Health", comment_test2.CardTypes["health"].Title);
             Assert.Equal("res://assets/wealth_icon.png", comment_test2.CardTypes["funds"].IconPath);
             Assert.Equal("res://assets/reputation_icon.png", comment_test2.CardTypes["health"].IconPath);
+        }
+
+        public static class TestModels
+        {
+
+            public record GameConfig(Dictionary<string, CardType> CardTypes, Dictionary<string, GameFlow> GameFlows, string[] StartingCards, string[] StartingFlows);
+
+            public record CardType(string Title, string IconPath);
+
+            public record GameFlow(string IconPath, string StartState, Dictionary<string, FlowState> States);
+
+            public abstract record FlowState(
+                Dictionary<string, StateVariant> Variants,
+                string DefaultVariant);
+
+            public record StateVariant(
+                string Title,
+                string Description,
+                string ActionLabel,
+                StateAction? OnAction);
+
+            public record SocketState(
+                Dictionary<string, StateVariant> Variants,
+                string DefaultVariant,
+                SocketConfig[] Sockets)
+                 : FlowState(Variants, DefaultVariant);
+
+            public record SocketConfig(string Title, string[] Accepts, Dictionary<string, StateAction> OnAccept);
+
+            public abstract record StateAction();
+
+            public record TransitionAction(string NewState) : StateAction;
+
+            public record VariantAction(string NewVariant) : StateAction;
+
+            public record TimerState(
+                Dictionary<string, StateVariant> Variants,
+                string DefaultVariant,
+                int Seconds,
+                SocketConfig? Socket,
+                StateAction OnElapsed)
+                 : FlowState(Variants, DefaultVariant);
+
+            public record CardState(
+                Dictionary<string, StateVariant> Variants,
+                string DefaultVariant,
+                string[] NewCards)
+                 : FlowState(Variants, DefaultVariant);
+
+            public static GameConfig CreateModel()
+            {
+                return new GameConfig(new()
+            {
+                { "funds", new CardType("Funds", "res://assets/wealth_icon.png") },
+                { "health", new CardType("Health", "res://assets/reputation_icon.png") },
+            },
+                new()
+                {
+                { "work", new GameFlow("res://assets/authority_icon.png", "choose_path", new() {
+                    {
+                        "choose_path", new SocketState(new ()
+                        {
+                            {"default", new StateVariant("Work", "Choose your path to earn funds", "Start", null)},
+                            {"labour", new StateVariant("Work", "Physical work for small pay", "Start", new TransitionAction("labour"))}
+                        }
+                        , "default", [
+                            new SocketConfig("work", ["reason","health","passion"], new() {
+                                { "health", new VariantAction("labour") }
+                            })
+                        ])
+                    },
+                    {
+                        "labour", new TimerState(new ()
+                        {
+                            {"default", new StateVariant("Work", "The day stretches long, your hand's burn", "Running...", null)},
+                        }
+                        , "default", 60, null, new TransitionAction("choose_path")) // repeat for test
+                    },
+                }) }
+                },
+                ["funds", "funds", "health", "health"],
+                ["work"]);
+            }
         }
     }
 }
