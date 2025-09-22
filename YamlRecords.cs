@@ -383,6 +383,12 @@ public static class YamlRecords
                     result_dict[parts[0]] = res;
                 i += processed_count;
             }
+            else if (parts[1].StartsWith('[') && parts[1].EndsWith(']'))
+            {
+                var inline_parts = parts[1].Split("[,]".ToCharArray(), StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var new_list = inline_parts.Select(p => (object)p).ToList();
+                result_dict[parts[0]] = new_list;
+            }
             else
                 result_dict[parts[0]] = parts[1];
         }
