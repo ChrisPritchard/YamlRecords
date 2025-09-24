@@ -51,7 +51,7 @@ public static class YamlRecords
     private static void SerializeBasic(StringBuilder sb, object obj, string indent = "", bool convert_string_case = false)
     {
         sb.Append(indent);
-        if (obj is not string)
+        if (obj is not string && !obj.GetType().IsEnum)
         {
             if (obj is bool b)
                 sb.Append(b ? "true" : "false");
@@ -60,7 +60,7 @@ public static class YamlRecords
             return;
         }
 
-        var str = (string)obj;
+        var str = obj.ToString()!; // will also convert enums
         if (special_characters.Any(str.Contains))
             sb.Append('"').Append(str.Replace("\"", "\\\"")).Append('"');
         else
@@ -152,7 +152,9 @@ public static class YamlRecords
 
     private static object DeserializeBasic(object value, Type type)
     {
-        if (type != typeof(string))
+        if (type.IsEnum)
+            return Enum.Parse(type, value.ToString()!);
+        else if (type != typeof(string))
         {
             if (type == typeof(bool))
                 return bool.Parse((string)value);
@@ -252,7 +254,8 @@ public static class YamlRecords
 
     private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string)];
 
-    private static bool IsBasicType(Type type) => type.IsPrimitive || basic_non_primitive.Contains(type);
+    private static bool IsBasicType(Type type) =>
+        type.IsPrimitive || type.IsEnum || basic_non_primitive.Contains(type);
 
     private static bool IsMap(Type type, out Type key_type, out Type value_type)
     {

@@ -206,6 +206,49 @@ public class YamlRecordsTests
         Assert.Equal(yaml, expected);
     }
 
+    [Fact]
+    public void Serializing_Enums_Should_Be_Strings()
+    {
+        // Arrange
+        var test_type = new EnumContainer
+        {
+            FirstEnumValue = TestEnum.AndAOne,
+            SecondEnumValue = TestEnum.AndATwo,
+            ThirdAndFinal = TestEnum.AndAOneTwoThree
+        };
+
+        var nl = Environment.NewLine;
+        var expected =
+            "firstEnumValue: AndAOne" + nl +
+            "secondEnumValue: AndATwo" + nl +
+            "thirdAndFinal: AndAOneTwoThree";
+
+        // Act
+        var yaml = YamlRecords.Serialize(test_type);
+
+        // Assert
+        Assert.Equal(yaml, expected);
+    }
+
+    [Fact]
+    public void Deserializing_Enums_Should_Work_From_Strings_Or_Numbers()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var yaml =
+            "firstEnumValue: AndAOne" + nl +
+            "secondEnumValue: AndATwo" + nl +
+            "thirdAndFinal: AndAOneTwoThree";
+
+        // Act
+        var result = YamlRecords.Deserialize<EnumContainer>(yaml);
+
+        // Assert
+        Assert.Equal(TestEnum.AndAOne, result.FirstEnumValue);
+        Assert.Equal(TestEnum.AndATwo, result.SecondEnumValue);
+        Assert.Equal(TestEnum.AndAOneTwoThree, result.ThirdAndFinal);
+    }
+
     public static class TestModels
     {
 
@@ -312,6 +355,15 @@ public class YamlRecordsTests
             {
                 Title = title;
             }
+        }
+
+        public enum TestEnum { AndAOne, AndATwo, AndAOneTwoThree };
+
+        public class EnumContainer
+        {
+            public TestEnum FirstEnumValue { get; set; }
+            public TestEnum SecondEnumValue { get; set; }
+            public TestEnum ThirdAndFinal { get; set; }
         }
     }
 }
