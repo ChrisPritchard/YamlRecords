@@ -51,7 +51,8 @@ public static class YamlRecords
     private static void SerializeBasic(StringBuilder sb, object obj, string indent = "", bool convert_string_case = false)
     {
         sb.Append(indent);
-        if (obj is not string && !obj.GetType().IsEnum)
+        var type = obj.GetType();
+        if (obj is not string && !type.IsEnum)
         {
             if (obj is bool b)
                 sb.Append(b ? "true" : "false");
@@ -61,6 +62,8 @@ public static class YamlRecords
         }
 
         var str = obj.ToString()!; // will also convert enums
+        if (type.IsEnum && str == "0")
+            str = "";
         if (special_characters.Any(str.Contains))
             sb.Append('"').Append(str.Replace("\"", "\\\"")).Append('"');
         else

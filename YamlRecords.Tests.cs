@@ -108,7 +108,7 @@ public class YamlRecordsTests
         var yaml = YamlRecords.Serialize(test_type);
 
         // Assert
-        Assert.Equal(yaml, expected);
+        Assert.Equal(expected, yaml);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class YamlRecordsTests
         var yaml = YamlRecords.Serialize(test_type);
 
         // Assert
-        Assert.Equal(yaml, expected);
+        Assert.Equal(expected, yaml);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class YamlRecordsTests
         var yaml = YamlRecords.Serialize(test_type);
 
         // Assert
-        Assert.Equal(yaml, expected);
+        Assert.Equal(expected, yaml);
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class YamlRecordsTests
         var yaml = YamlRecords.Serialize(test_type);
 
         // Assert
-        Assert.Equal(yaml, expected);
+        Assert.Equal(expected, yaml);
     }
 
     [Fact]
@@ -227,11 +227,11 @@ public class YamlRecordsTests
         var yaml = YamlRecords.Serialize(test_type);
 
         // Assert
-        Assert.Equal(yaml, expected);
+        Assert.Equal(expected, yaml);
     }
 
     [Fact]
-    public void Deserializing_Enums_Should_Work_From_Strings_Or_Numbers()
+    public void Deserializing_Enums_Should_Work_From_Strings()
     {
         // Arrange
         var nl = Environment.NewLine;
@@ -247,6 +247,46 @@ public class YamlRecordsTests
         Assert.Equal(TestEnum.AndAOne, result.FirstEnumValue);
         Assert.Equal(TestEnum.AndATwo, result.SecondEnumValue);
         Assert.Equal(TestEnum.AndAOneTwoThree, result.ThirdAndFinal);
+    }
+
+    [Fact]
+    public void Serializing_Flags_Should_Be_CommaString()
+    {
+        // Arrange
+        var test_type = new FlagsContainer
+        {
+            FlagsValue = TestFlags.This | TestFlags.And | TestFlags.That,
+            FlagsValue2 = TestFlags.That | TestFlags.This,
+        };
+
+        var expected =
+            "flagsValue: This, And, That" + Environment.NewLine +
+            "flagsValue2: This, That" + Environment.NewLine +
+            "flagsValue3: ";
+
+        // Act
+        var yaml = YamlRecords.Serialize(test_type);
+
+        // Assert
+        Assert.Equal(expected, yaml);
+    }
+
+    [Fact]
+    public void Deserializing_Flags_CommaString_Should_Work_From_Strings()
+    {
+        // Arrange
+        var yaml =
+            "flagsValue: This, And, That" + Environment.NewLine +
+            "flagsValue2: That, This" + Environment.NewLine +
+            "flagsValue3: ";
+
+        // Act
+        var result = YamlRecords.Deserialize<FlagsContainer>(yaml);
+
+        // Assert
+        Assert.Equal(TestFlags.This | TestFlags.And | TestFlags.That, result.FlagsValue);
+        Assert.Equal(TestFlags.This | TestFlags.That, result.FlagsValue2);
+        Assert.Equal((TestFlags)0, result.FlagsValue3);
     }
 
     public static class TestModels
@@ -364,6 +404,16 @@ public class YamlRecordsTests
             public TestEnum FirstEnumValue { get; set; }
             public TestEnum SecondEnumValue { get; set; }
             public TestEnum ThirdAndFinal { get; set; }
+        }
+
+        [Flags]
+        public enum TestFlags { This = 1, And = 2, That = 4 };
+
+        public class FlagsContainer
+        {
+            public TestFlags FlagsValue { get; set; }
+            public TestFlags FlagsValue2 { get; set; }
+            public TestFlags FlagsValue3 { get; set; }
         }
     }
 }
