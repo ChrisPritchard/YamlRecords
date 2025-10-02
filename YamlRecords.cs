@@ -7,20 +7,23 @@ using System.Text;
 
 public static class YamlRecords
 {
-    private const string indent_amount = "  ";
-    private static readonly char[] special_characters = ":\"\'\n[]{}#".ToCharArray();
-
-    public static string Serialize(object obj)
+    public static string Serialize(object obj, uint? custom_indent_amount)
     {
+        indent_amount = custom_indent_amount.HasValue ? new string(' ', (int)custom_indent_amount) : "  ";
+
         var sb = new StringBuilder();
         SerializeUnknown(sb, obj);
+
         return sb.ToString();
     }
 
-    public static T Deserialize<T>(string yaml)
+    public static T Deserialize<T>(string yaml, uint? custom_indent_amount)
     {
+        indent_amount = custom_indent_amount.HasValue ? new string(' ', (int)custom_indent_amount) : "  ";
+
         var lines = yaml.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         var processed = PreProcess(lines, "").Item1;
+
         return (T)DeserializeUnknown(processed, typeof(T));
     }
 
@@ -261,7 +264,11 @@ public static class YamlRecords
 
     #region Shared and Utility Methods
 
+    private static string indent_amount = "  ";
+
     private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string)];
+
+    private static readonly char[] special_characters = ":\"\'\n[]{}#".ToCharArray();
 
     private static bool IsBasicType(Type type)
     {
