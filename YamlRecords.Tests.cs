@@ -315,6 +315,19 @@ public class YamlRecordsTests
         Assert.Equal(expected, result);
     }
 
+    [Fact]
+    public void Should_Support_Line_Comments()
+    {
+        // Arrange
+        var yaml = "property1: 60 # test1" + Environment.NewLine + " # this is a test";
+
+        // Act
+        var result = YamlRecords.Deserialize<NullableHolder>(yaml);
+
+        Assert.Equal(60, result.Property1);
+        Assert.Null(result.Property2);
+    }
+
     public static class TestModels
     {
 

@@ -342,6 +342,9 @@ public static class YamlRecords
         for (var i = 0; i < lines.Length; i++)
         {
             lines[i] = CleanLine(lines[i]);
+            if (string.IsNullOrWhiteSpace(lines[i]))
+                continue;
+
             if (!lines[i].StartsWith(indent))
                 return (result_dict.Count > 0 ? result_dict : result_list, i);
 
