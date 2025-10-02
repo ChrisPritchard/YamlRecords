@@ -24,9 +24,7 @@ public static class YamlRecords
         return (T)DeserializeUnknown(processed, typeof(T));
     }
 
-    //
-    // - Serialization Methods
-    //
+    #region Serialization Methods
 
     private static void SerializeUnknown(StringBuilder sb, object obj, string indent = "", bool first_line_indented = false)
     {
@@ -135,9 +133,9 @@ public static class YamlRecords
         }
     }
 
-    //
-    // - Deserialization Methods
-    //
+    #endregion
+
+    #region Deserialization Methods
 
     private static object DeserializeUnknown(object obj, Type type)
     {
@@ -259,9 +257,9 @@ public static class YamlRecords
         return instance;
     }
 
-    //
-    // - Utility Methods
-    //
+    #endregion
+
+    #region Shared and Utility Methods
 
     private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string)];
 
@@ -474,4 +472,6 @@ public static class YamlRecords
 
         throw new Exception("could not find concrete type for " + baseType.Name);
     }
+
+    #endregion
 }
