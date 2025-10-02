@@ -7,7 +7,7 @@ using System.Text;
 
 public static class YamlRecords
 {
-    public static string Serialize(object obj, uint? custom_indent_amount)
+    public static string Serialize(object obj, uint? custom_indent_amount = null)
     {
         indent_amount = custom_indent_amount.HasValue ? new string(' ', (int)custom_indent_amount) : "  ";
 
@@ -17,7 +17,7 @@ public static class YamlRecords
         return sb.ToString();
     }
 
-    public static T Deserialize<T>(string yaml, uint? custom_indent_amount)
+    public static T Deserialize<T>(string yaml, uint? custom_indent_amount = null)
     {
         indent_amount = custom_indent_amount.HasValue ? new string(' ', (int)custom_indent_amount) : "  ";
 
@@ -25,6 +25,16 @@ public static class YamlRecords
         var processed = PreProcess(lines, "").Item1;
 
         return (T)DeserializeUnknown(processed, typeof(T));
+    }
+
+    [Obsolete("this method is not ready yet and should not be used", true)]
+    public static string GenerateSchema<T>()
+    {
+        var type = typeof(T);
+        var sb = new StringBuilder();
+        SchemaFromType(sb, type);
+
+        return sb.ToString();
     }
 
     #region Serialization Methods
@@ -258,6 +268,15 @@ public static class YamlRecords
         }
 
         return instance;
+    }
+
+    #endregion
+
+    #region Schema Generation Methods
+
+    private static void SchemaFromType(StringBuilder sb, Type type)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion

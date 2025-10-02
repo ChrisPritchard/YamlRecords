@@ -328,6 +328,19 @@ public class YamlRecordsTests
         Assert.Null(result.Property2);
     }
 
+    // [Fact]
+    // public void Schema_Test()
+    // {
+    //     // Arrange
+    //     var yaml = "property1: 60 # test1" + Environment.NewLine + " # this is a test";
+
+    //     // Act
+    //     var result = YamlRecords.GenerateSchema<NullableHolder>();
+
+    //     Assert.Equal(60, result.Property1);
+    //     Assert.Null(result.Property2);
+    // }
+
     public static class TestModels
     {
 
