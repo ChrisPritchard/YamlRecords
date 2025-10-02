@@ -289,6 +289,32 @@ public class YamlRecordsTests
         Assert.Equal((TestFlags)0, result.FlagsValue3);
     }
 
+    [Fact]
+    public void Should_Deserialize_Nullable_Primitives()
+    {
+        // Arrange
+        var yaml = "property1: 60";
+
+        // Act
+        var result = YamlRecords.Deserialize<NullableHolder>(yaml);
+
+        Assert.Equal(60, result.Property1);
+        Assert.Null(result.Property2);
+    }
+
+    [Fact]
+    public void Should_Serialize_Nullable_Primitives()
+    {
+        // Arrange
+        var model = new NullableHolder { Property2 = 30 };
+        var expected = "property1:" + Environment.NewLine + "property2: 30";
+
+        // Act
+        var result = YamlRecords.Serialize(model);
+
+        Assert.Equal(expected, result);
+    }
+
     public static class TestModels
     {
 
@@ -414,6 +440,12 @@ public class YamlRecordsTests
             public TestFlags FlagsValue { get; set; }
             public TestFlags FlagsValue2 { get; set; }
             public TestFlags FlagsValue3 { get; set; }
+        }
+
+        public class NullableHolder
+        {
+            public int? Property1 { get; set; }
+            public int? Property2 { get; set; }
         }
     }
 }

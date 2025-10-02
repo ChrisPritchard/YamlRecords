@@ -155,6 +155,14 @@ public static class YamlRecords
 
     private static object DeserializeBasic(object value, Type type)
     {
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+        {
+            var under_type = type.GetGenericArguments()[0];
+            if (value == null)
+                return default!;
+            return DeserializeBasic(value, under_type);
+        }
+
         if (type.IsEnum)
             return Enum.Parse(type, value.ToString()!);
         else if (type != typeof(string))
@@ -257,8 +265,14 @@ public static class YamlRecords
 
     private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string)];
 
-    private static bool IsBasicType(Type type) =>
-        type.IsPrimitive || type.IsEnum || basic_non_primitive.Contains(type);
+    private static bool IsBasicType(Type type)
+    {
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            return IsBasicType(type.GetGenericArguments()[0]);
+
+        return type.IsPrimitive || type.IsEnum || basic_non_primitive.Contains(type);
+    }
+
 
     private static bool IsMap(Type type, out Type key_type, out Type value_type)
     {
