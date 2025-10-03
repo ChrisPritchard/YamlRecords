@@ -1,10 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
-using Microsoft.VisualStudio.TestPlatform.Common.DataCollection;
-using NJsonSchema;
-using NJsonSchema.Generation;
 using Xunit;
 
 using static YamlRecordsTests.TestModels;
