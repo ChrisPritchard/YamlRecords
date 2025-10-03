@@ -1,5 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using Microsoft.VisualStudio.TestPlatform.Common.DataCollection;
+using NJsonSchema;
+using NJsonSchema.Generation;
 using Xunit;
 
 using static YamlRecordsTests.TestModels;
@@ -331,14 +336,16 @@ public class YamlRecordsTests
     // [Fact]
     // public void Schema_Test()
     // {
-    //     // Arrange
-    //     var yaml = "property1: 60 # test1" + Environment.NewLine + " # this is a test";
+    //     // var schema = JsonSchema.FromType<StateVariant>(new SystemTextJsonSchemaGeneratorSettings
+    //     // {
+    //     //     SerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+    //     // });
+    //     // var result = schema.ToJson();
+    //     var result = YamlRecords.GenerateSchema<GameConfig>().ToString();
 
-    //     // Act
-    //     var result = YamlRecords.GenerateSchema<NullableHolder>();
+    //     File.WriteAllText("../../../schema.json", result);
 
-    //     Assert.Equal(60, result.Property1);
-    //     Assert.Null(result.Property2);
+    //     Assert.NotNull(result);
     // }
 
     public static class TestModels

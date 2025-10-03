@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Nodes;
 
 public static class YamlRecords
 {
@@ -28,14 +29,7 @@ public static class YamlRecords
     }
 
     [Obsolete("this method is not ready yet and should not be used", true)]
-    public static string GenerateSchema<T>()
-    {
-        var type = typeof(T);
-        var sb = new StringBuilder();
-        SchemaFromType(sb, type);
-
-        return sb.ToString();
-    }
+    public static JsonObject GenerateSchema<T>() => SchemaFromType(typeof(T), []);
 
     #region Serialization Methods
 
@@ -274,9 +268,98 @@ public static class YamlRecords
 
     #region Schema Generation Methods
 
-    private static void SchemaFromType(StringBuilder sb, Type type)
+    private static JsonObject SchemaFromType(Type type, HashSet<Type> processed)
     {
-        throw new NotImplementedException();
+        if (processed.Contains(type))
+            return new JsonObject
+            {
+                ["$ref"] = $"#/definitions/{GetTypeName(type)}"
+            };
+
+        processed.Add(type);
+
+        var schema = new JsonObject
+        {
+            ["type"] = GetJsonType(type),
+            ["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+        };
+
+        if (IsNullable(type))
+        {
+            schema["type"] = new JsonArray { "null", GetJsonType(Nullable.GetUnderlyingType(type)!) };
+        }
+        else if (IsList(type, out Type? elementType))
+        {
+            schema["type"] = "array";
+            schema["items"] = SchemaFromType(elementType!, processed);
+            return schema;
+        }
+        else if (IsMap(type, out Type? _, out Type? valueType))
+        {
+            schema["type"] = "object";
+            schema["additionalProperties"] = SchemaFromType(valueType!, processed);
+            return schema;
+        }
+        else if (schema["type"]!.GetValue<string>() == "object" && !type.IsPrimitive && type != typeof(string))
+        {
+            var properties = new JsonObject();
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetMethod?.IsPublic == true))
+                properties[prop.Name] = SchemaFromType(prop.PropertyType, processed);
+
+            if (properties.Count > 0)
+                schema["properties"] = properties;
+        }
+
+        schema["definitions"] = GenerateDefinitions(processed);
+
+        return schema;
+    }
+
+    private static JsonObject GenerateDefinitions(HashSet<Type> processed)
+    {
+        var definitions = new JsonObject();
+        foreach (var processedType in processed.Where(t => !IsBasicType(t)))
+        {
+            definitions[GetTypeName(processedType)] = GenerateSchemaForDefinition(processedType, processed);
+        }
+        return definitions;
+    }
+
+    private static JsonObject GenerateSchemaForDefinition(Type type, HashSet<Type> processed)
+    {
+        var tempProcessed = new HashSet<Type>(processed);
+        var schema = SchemaFromType(type, tempProcessed);
+        processed.UnionWith(tempProcessed);
+        return schema;
+    }
+
+    private static string GetJsonType(Type type)
+    {
+        if (type == typeof(string) || type == typeof(char) || type == typeof(Guid))
+            return "string";
+        if (type == typeof(bool))
+            return "boolean";
+        if (type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort) ||
+            type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong) ||
+            type == typeof(float) || type == typeof(double) || type == typeof(decimal))
+            return "number";
+        if (type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan))
+            return "string"; // JSON doesn't have date type
+        if (type.IsEnum)
+            return "string";
+        return "object";
+    }
+
+    private static bool IsNullable(Type type) => Nullable.GetUnderlyingType(type) != null;
+
+    private static string GetTypeName(Type type)
+    {
+        if (!type.IsGenericType) return type.Name;
+
+        var genericArgs = type.GetGenericArguments();
+        var name = type.Name.Split('`')[0];
+        return $"{name}<{string.Join(",", genericArgs.Select(GetTypeName))}>";
     }
 
     #endregion
@@ -285,7 +368,7 @@ public static class YamlRecords
 
     private static string indent_amount = "  ";
 
-    private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string)];
+    private static readonly Type[] basic_non_primitive = [typeof(decimal), typeof(float), typeof(string), typeof(DateTime), typeof(DateTimeOffset)];
 
     private static readonly char[] special_characters = ":\"\'\n[]{}#".ToCharArray();
 

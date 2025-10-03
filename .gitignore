@@ -53,4 +53,5 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-out.yml
+*.yml
+*.json
