@@ -281,13 +281,13 @@ public static class YamlRecords
             schema["type"] = new JsonArray { "null", SchemaType(under_type) };
         else if (IsBasicType(type))
             schema["type"] = SchemaType(type);
-        else if (IsMap(type, out Type? _, out Type? valueType))
+        else if (IsMap(type, out Type _, out Type valueType))
         {
             schema["type"] = "object";
             schema["additionalProperties"] = SchemaFromNonRecord(valueType!, out var sub_records);
             found_records.UnionWith(sub_records);
         }
-        else if (IsList(type, out Type? elementType))
+        else if (IsList(type, out Type elementType))
         {
             schema["type"] = "array";
             schema["items"] = SchemaFromNonRecord(elementType!, out var sub_records);
