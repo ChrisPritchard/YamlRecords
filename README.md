@@ -116,3 +116,261 @@ var test = YamlRecords.Deserialize<GameConfig>(yaml);
 ```
 
 And have no issues (re-serialize if necessary, to prove that the populated classes will once again generate identical YAML).
+
+## Schemas
+
+The tool can also generate a json schema for a type, complete with support for derived types. For example:
+
+```c#
+var schema = YamlRecords.GenerateSchema<GameConfig>()
+```
+
+will generate something like:
+
+```json
+{
+  "type": "object",
+  "title": "gameConfig",
+  "nullable": true,
+  "properties": {
+    "cardTypes": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/defs/CardType"
+      }
+    },
+    "gameFlows": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/defs/GameFlow"
+      }
+    },
+    "startingCards": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "startingFlows": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "defs": {
+    "CardType": {
+      "type": "object",
+      "title": "cardType",
+      "nullable": true,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "iconPath": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GameFlow": {
+      "type": "object",
+      "title": "gameFlow",
+      "nullable": true,
+      "properties": {
+        "iconPath": {
+          "type": "string"
+        },
+        "startState": {
+          "type": "string"
+        },
+        "states": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/FlowState"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "FlowState": {
+      "type": "object",
+      "title": "flowState",
+      "nullable": true,
+      "properties": {
+        "variants": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/StateVariant"
+          }
+        },
+        "defaultVariant": {
+          "type": "string"
+        }
+      },
+      "oneOf": [
+        {
+          "$ref": "#/defs/SocketState"
+        },
+        {
+          "$ref": "#/defs/TimerState"
+        },
+        {
+          "$ref": "#/defs/CardState"
+        }
+      ]
+    },
+    "StateVariant": {
+      "type": "object",
+      "title": "stateVariant",
+      "nullable": true,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "actionLabel": {
+          "type": "string"
+        },
+        "onAction": {
+          "$ref": "#/defs/StateAction"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SocketState": {
+      "type": "object",
+      "title": "socketState",
+      "nullable": true,
+      "properties": {
+        "sockets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/defs/SocketConfig"
+          }
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/StateVariant"
+          }
+        },
+        "defaultVariant": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TimerState": {
+      "type": "object",
+      "title": "timerState",
+      "nullable": true,
+      "properties": {
+        "seconds": {
+          "type": "number"
+        },
+        "socket": {
+          "$ref": "#/defs/SocketConfig"
+        },
+        "onElapsed": {
+          "$ref": "#/defs/StateAction"
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/StateVariant"
+          }
+        },
+        "defaultVariant": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CardState": {
+      "type": "object",
+      "title": "cardState",
+      "nullable": true,
+      "properties": {
+        "newCards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/StateVariant"
+          }
+        },
+        "defaultVariant": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "StateAction": {
+      "type": "object",
+      "title": "stateAction",
+      "nullable": true,
+      "oneOf": [
+        {
+          "$ref": "#/defs/TransitionAction"
+        },
+        {
+          "$ref": "#/defs/VariantAction"
+        }
+      ]
+    },
+    "SocketConfig": {
+      "type": "object",
+      "title": "socketConfig",
+      "nullable": true,
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "accepts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "onAccept": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/defs/StateAction"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "TransitionAction": {
+      "type": "object",
+      "title": "transitionAction",
+      "nullable": true,
+      "properties": {
+        "newState": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "VariantAction": {
+      "type": "object",
+      "title": "variantAction",
+      "nullable": true,
+      "properties": {
+        "newVariant": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+```
