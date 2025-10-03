@@ -28,7 +28,6 @@ public static class YamlRecords
         return (T)DeserializeUnknown(processed, typeof(T));
     }
 
-    // [Obsolete("this method is not ready yet and should not be used", true)]
     public static JsonObject GenerateSchema<T>()
     {
         var schema = SchemaFromRecord(typeof(T), out var found_records);
@@ -310,7 +309,7 @@ public static class YamlRecords
 
         schema["type"] = "object";
         schema["title"] = CamelCase(type.Name);
-        schema["additionalProperties"] = false;
+        schema["nullable"] = true;
 
         var properties = new JsonObject();
         foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetMethod?.IsPublic == true))
@@ -321,6 +320,24 @@ public static class YamlRecords
 
         if (properties.Count > 0)
             schema["properties"] = properties;
+
+        if (type.IsAbstract || type.IsInterface)
+        {
+            var assembly = type.Assembly;
+            var concreteTypes = assembly.GetTypes()
+                .Where(t => !t.IsAbstract && !t.IsInterface && type.IsAssignableFrom(t))
+                .ToList();
+            if (concreteTypes.Count > 0)
+            {
+                found_records.UnionWith(concreteTypes);
+                var one_of = new JsonArray();
+                foreach (var derived_type in concreteTypes)
+                    one_of.Add(new JsonObject { ["$ref"] = "#/defs/" + derived_type.Name });
+                schema["oneOf"] = one_of;
+            }
+        }
+        else
+            schema["additionalProperties"] = false;
 
         return schema;
     }
@@ -354,7 +371,7 @@ public static class YamlRecords
             type == typeof(float) || type == typeof(double) || type == typeof(decimal))
             return "number";
         if (type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(TimeSpan))
-            return "string"; // JSON doesn't have date type
+            return "string"; // no date types in json
         if (type.IsEnum)
             return "string";
         return "object";

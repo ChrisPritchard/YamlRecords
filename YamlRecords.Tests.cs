@@ -329,17 +329,9 @@ public class YamlRecordsTests
     }
 
     [Fact]
-    public void Schema_Test()
+    public void Can_Generate_Schema()
     {
-        // var schema = JsonSchema.FromType<StateVariant>(new SystemTextJsonSchemaGeneratorSettings
-        // {
-        //     SerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-        // });
-        // var result = schema.ToJson();
         var result = YamlRecords.GenerateSchema<GameConfig>().ToString();
-
-        System.IO.File.WriteAllText("../../../schema.json", result);
-
         Assert.NotNull(result);
     }
 
