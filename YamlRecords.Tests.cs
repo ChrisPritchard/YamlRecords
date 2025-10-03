@@ -328,20 +328,20 @@ public class YamlRecordsTests
         Assert.Null(result.Property2);
     }
 
-    // [Fact]
-    // public void Schema_Test()
-    // {
-    //     // var schema = JsonSchema.FromType<StateVariant>(new SystemTextJsonSchemaGeneratorSettings
-    //     // {
-    //     //     SerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
-    //     // });
-    //     // var result = schema.ToJson();
-    //     var result = YamlRecords.GenerateSchema<GameConfig>().ToString();
+    [Fact]
+    public void Schema_Test()
+    {
+        // var schema = JsonSchema.FromType<StateVariant>(new SystemTextJsonSchemaGeneratorSettings
+        // {
+        //     SerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        // });
+        // var result = schema.ToJson();
+        var result = YamlRecords.GenerateSchema<GameConfig>().ToString();
 
-    //     File.WriteAllText("../../../schema.json", result);
+        System.IO.File.WriteAllText("../../../schema.json", result);
 
-    //     Assert.NotNull(result);
-    // }
+        Assert.NotNull(result);
+    }
 
     public static class TestModels
     {

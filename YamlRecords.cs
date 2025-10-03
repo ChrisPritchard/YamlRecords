@@ -28,8 +28,13 @@ public static class YamlRecords
         return (T)DeserializeUnknown(processed, typeof(T));
     }
 
-    [Obsolete("this method is not ready yet and should not be used", true)]
-    public static JsonObject GenerateSchema<T>() => SchemaFromType(typeof(T), []);
+    // [Obsolete("this method is not ready yet and should not be used", true)]
+    public static JsonObject GenerateSchema<T>()
+    {
+        var schema = SchemaFromRecord(typeof(T), out var found_records);
+        SchemaDefinitions(schema, found_records);
+        return schema;
+    }
 
     #region Serialization Methods
 
@@ -268,73 +273,77 @@ public static class YamlRecords
 
     #region Schema Generation Methods
 
-    private static JsonObject SchemaFromType(Type type, HashSet<Type> processed)
+    private static JsonObject SchemaFromNonRecord(Type type, out HashSet<Type> found_records)
     {
-        if (processed.Contains(type))
-            return new JsonObject
-            {
-                ["$ref"] = $"#/definitions/{GetTypeName(type)}"
-            };
+        var schema = new JsonObject();
+        found_records = [];
 
-        processed.Add(type);
-
-        var schema = new JsonObject
+        if (Nullable.GetUnderlyingType(type) is Type under_type)
+            schema["type"] = new JsonArray { "null", SchemaType(under_type) };
+        else if (IsBasicType(type))
+            schema["type"] = SchemaType(type);
+        else if (IsMap(type, out Type? _, out Type? valueType))
         {
-            ["type"] = GetJsonType(type),
-            ["$schema"] = "https://json-schema.org/draft/2020-12/schema"
-        };
-
-        if (IsNullable(type))
-        {
-            schema["type"] = new JsonArray { "null", GetJsonType(Nullable.GetUnderlyingType(type)!) };
+            schema["type"] = "object";
+            schema["additionalProperties"] = SchemaFromNonRecord(valueType!, out var sub_records);
+            found_records.UnionWith(sub_records);
         }
         else if (IsList(type, out Type? elementType))
         {
             schema["type"] = "array";
-            schema["items"] = SchemaFromType(elementType!, processed);
-            return schema;
+            schema["items"] = SchemaFromNonRecord(elementType!, out var sub_records);
+            found_records.UnionWith(sub_records);
         }
-        else if (IsMap(type, out Type? _, out Type? valueType))
+        else
         {
-            schema["type"] = "object";
-            schema["additionalProperties"] = SchemaFromType(valueType!, processed);
-            return schema;
+            schema["$ref"] = "#/defs/" + type.Name;
+            found_records.Add(type);
         }
-        else if (schema["type"]!.GetValue<string>() == "object" && !type.IsPrimitive && type != typeof(string))
-        {
-            var properties = new JsonObject();
-
-            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetMethod?.IsPublic == true))
-                properties[prop.Name] = SchemaFromType(prop.PropertyType, processed);
-
-            if (properties.Count > 0)
-                schema["properties"] = properties;
-        }
-
-        schema["definitions"] = GenerateDefinitions(processed);
 
         return schema;
     }
 
-    private static JsonObject GenerateDefinitions(HashSet<Type> processed)
+    private static JsonObject SchemaFromRecord(Type type, out HashSet<Type> found_records)
     {
+        var schema = new JsonObject();
+        found_records = [];
+
+        schema["type"] = "object";
+        schema["title"] = CamelCase(type.Name);
+        schema["additionalProperties"] = false;
+
+        var properties = new JsonObject();
+        foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetMethod?.IsPublic == true))
+        {
+            properties[CamelCase(prop.Name)] = SchemaFromNonRecord(prop.PropertyType, out var sub_records);
+            found_records.UnionWith(sub_records);
+        }
+
+        if (properties.Count > 0)
+            schema["properties"] = properties;
+
+        return schema;
+    }
+
+    private static void SchemaDefinitions(JsonObject schema, HashSet<Type> found_records)
+    {
+        if (found_records.Count == 0)
+            return;
+
         var definitions = new JsonObject();
-        foreach (var processedType in processed.Where(t => !IsBasicType(t)))
+        var processed = new HashSet<Type>();
+        while (found_records.Count != processed.Count)
         {
-            definitions[GetTypeName(processedType)] = GenerateSchemaForDefinition(processedType, processed);
+            var type = found_records.First(o => !processed.Contains(o));
+            processed.Add(type);
+            definitions[type.Name] = SchemaFromRecord(type, out var new_records);
+            found_records.UnionWith(new_records);
         }
-        return definitions;
+
+        schema["defs"] = definitions;
     }
 
-    private static JsonObject GenerateSchemaForDefinition(Type type, HashSet<Type> processed)
-    {
-        var tempProcessed = new HashSet<Type>(processed);
-        var schema = SchemaFromType(type, tempProcessed);
-        processed.UnionWith(tempProcessed);
-        return schema;
-    }
-
-    private static string GetJsonType(Type type)
+    private static string SchemaType(Type type)
     {
         if (type == typeof(string) || type == typeof(char) || type == typeof(Guid))
             return "string";
@@ -349,17 +358,6 @@ public static class YamlRecords
         if (type.IsEnum)
             return "string";
         return "object";
-    }
-
-    private static bool IsNullable(Type type) => Nullable.GetUnderlyingType(type) != null;
-
-    private static string GetTypeName(Type type)
-    {
-        if (!type.IsGenericType) return type.Name;
-
-        var genericArgs = type.GetGenericArguments();
-        var name = type.Name.Split('`')[0];
-        return $"{name}<{string.Join(",", genericArgs.Select(GetTypeName))}>";
     }
 
     #endregion
