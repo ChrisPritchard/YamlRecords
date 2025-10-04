@@ -1,9 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework> <!-- LTS .NET at time of writing (.NET 9 is
+        current, but not LTS) -->
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     </PropertyGroup>
+
+    <!-- some complexity in here, to make the normal build a test project with the test class,
+     and the release build a packable build for nuget without tests and their dependencies  -->
 
     <PropertyGroup Condition="'$(Configuration)' != 'Release'">
         <IsTestProject>true</IsTestProject>
@@ -11,20 +15,11 @@
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <IsPackable>true</IsPackable>
-        <!-- to remove the test stuff -->
         <IncludeBuildOutput>true</IncludeBuildOutput>
         <IncludeSymbols>false</IncludeSymbols>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
         <NoPackageAnalysis>true</NoPackageAnalysis>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <MajorVersion>1</MajorVersion>
-        <MinorVersion>0</MinorVersion>
-        <PatchVersion>0</PatchVersion>
-        <VersionSuffix>release$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</VersionSuffix>
-        <PackageVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)-$(VersionSuffix)</PackageVersion>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -36,6 +31,7 @@
         <PackageTags>yaml;yaml-schema;json-schema;serializer;deserializer</PackageTags>
         <Description>YAML serialisation, deserialisation and json schema generation utility, with
             support for primary constructors and same-assembly inheritance.</Description>
+        <Version>1.0.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -44,6 +40,18 @@
         <None Include="icon.png" Pack="true" PackagePath="" />
         <Compile Include="YamlRecords.cs" />
     </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' != 'Release'">
+        <Compile Include="**/*.Tests.cs" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <!-- this chunk adds the commit hash to the nuget package - better than version number imo -->
 
     <Target Name="GetGitVersion" BeforeTargets="GenerateNuspec">
         <Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true">
@@ -55,15 +63,5 @@
         </PropertyGroup>
         <Message Text="RepositoryCommit: $(RepositoryCommit)" Importance="high" />
     </Target>
-
-    <ItemGroup Condition="'$(Configuration)' != 'Release'">
-        <Compile Include="**/*.Tests.cs" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-        <PackageReference Include="xunit" Version="2.9.3" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-    </ItemGroup>
 
 </Project>

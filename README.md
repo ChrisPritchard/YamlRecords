@@ -6,13 +6,13 @@ A small script that can deserialize and serialize to YAML from dotnet classes; i
 
 I built this for a Godot game I was working on, where I wanted to use minimal Record type definitions and inheritance. The incumbent dotnet project for YAML is [YamlDotNet](https://github.com/aaubry/YamlDotNet) but at the time of writing (September 2025) that project, while being vastly more sophisticated and tested than this humble script, had not adapted to Records with primary constructors yet (there are workarounds that include adding parameterless constructors to each record, a bit ugly). Additionally it didn't support inheritance very well when deserializing, a perennial issue with serializers. I needed both.
 
-To use, just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere (setup namespaces or trim down as needed).
+To use, either use the Nuget package (link above), or just copy [YamlRecords.cs](./YamlRecords.cs) into your project somewhere (change namespaces or trim down as needed) - its been built to just use the standard library, no external dependencies.
 
-> **Note**: I built this for my needs, and its possible it won't cover all edge cases - I've tried to make it fairly generic for things like lists and collections, but don't expect it to be perfect.
+> **Note**: I built this for my needs, and its possible it won't cover all edge cases - I've tried to make it fairly generic for things like lists and collections, nullable types and enums etc, but don't expect it to be perfect.
 
 ## Example of use
 
-> **Note**: All of the below steps are performed in [YamlRecords.Tests.cs](./YamlRecords.Tests.cs); the only file you need for your own projects is [YamlRecords.cs](./YamlRecords.cs)
+> **Note**: All of the below steps are performed in [YamlRecords.Tests.cs](./YamlRecords.Tests.cs); the only file you need for your own projects is [YamlRecords.cs](./YamlRecords.cs) - the Nuget package also excludes all this testing stuff and their dependencies.
 
 Using the record types defined in [YamlRecords.Tests.cs](./YamlRecords.Tests.cs), you can define a structure like this:
 
@@ -56,6 +56,8 @@ You can then serialize this with:
 var yaml = YamlRecords.Serialize(test);
 Console.WriteLine(yaml);
 ```
+
+> Note the namespace is `YamlRecordsSerializer`
 
 Which will produce:
 
