@@ -2,10 +2,62 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' != 'Release'">
         <IsTestProject>true</IsTestProject>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <IsPackable>true</IsPackable>
+        <!-- to remove the test stuff -->
+        <IncludeBuildOutput>true</IncludeBuildOutput>
+        <IncludeSymbols>false</IncludeSymbols>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <NoPackageAnalysis>true</NoPackageAnalysis>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <MajorVersion>1</MajorVersion>
+        <MinorVersion>0</MinorVersion>
+        <PatchVersion>0</PatchVersion>
+        <VersionSuffix>release$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</VersionSuffix>
+        <PackageVersion>$(MajorVersion).$(MinorVersion).$(PatchVersion)-$(VersionSuffix)</PackageVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <Authors>Chris Pritchard</Authors>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <RepositoryUrl>https://github.com/ChrisPritchard/YamlRecords</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageTags>yaml;yaml-schema;json-schema;serializer;deserializer</PackageTags>
+        <Description>YAML serialisation, deserialisation and json schema generation utility, with
+            support for primary constructors and same-assembly inheritance.</Description>
+    </PropertyGroup>
+
     <ItemGroup>
+        <None Include="LICENSE" Pack="true" PackagePath="" />
+        <None Include="README.md" Pack="true" PackagePath="" />
+        <None Include="icon.png" Pack="true" PackagePath="" />
+        <Compile Include="YamlRecords.cs" />
+    </ItemGroup>
+
+    <Target Name="GetGitVersion" BeforeTargets="GenerateNuspec">
+        <Exec Command="git rev-parse HEAD" ConsoleToMSBuild="true" IgnoreExitCode="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="GitCommitHash" />
+        </Exec>
+        <PropertyGroup>
+            <RepositoryCommit Condition="'$(GitCommitHash)' != ''">$(GitCommitHash)</RepositoryCommit>
+            <RepositoryCommit Condition="'$(RepositoryCommit)' == ''">unknown</RepositoryCommit>
+        </PropertyGroup>
+        <Message Text="RepositoryCommit: $(RepositoryCommit)" Importance="high" />
+    </Target>
+
+    <ItemGroup Condition="'$(Configuration)' != 'Release'">
+        <Compile Include="**/*.Tests.cs" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
         <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">

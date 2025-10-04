@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Xunit;
+using YamlRecordsSerializer;
 
 using static YamlRecordsTests.TestModels;
 
@@ -352,7 +353,7 @@ public class YamlRecordsTests
             string Title,
             string Description,
             string ActionLabel,
-            StateAction? OnAction);
+            StateAction OnAction);
 
         public record SocketState(
             Dictionary<string, StateVariant> Variants,
@@ -372,7 +373,7 @@ public class YamlRecordsTests
             Dictionary<string, StateVariant> Variants,
             string DefaultVariant,
             int Seconds,
-            SocketConfig? Socket,
+            SocketConfig Socket,
             StateAction OnElapsed)
                 : FlowState(Variants, DefaultVariant);
 

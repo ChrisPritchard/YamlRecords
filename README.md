@@ -1,6 +1,6 @@
 # YamlRecords
 
-![.NET](https://github.com/ChrisPritchard/YamlRecords/actions/workflows/dotnet.yml/badge.svg)
+![.NET](https://github.com/ChrisPritchard/YamlRecords/actions/workflows/dotnet.yml/badge.svg) [![NuGet](https://img.shields.io/nuget/v/YamlRecords.svg)](https://www.nuget.org/packages/YamlRecords/)
 
 A small script that can deserialize and serialize to YAML from dotnet classes; it supports C# 9 [records with primary constructors](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record), and can also figure out inheritance with some derived type heuristics.
 
